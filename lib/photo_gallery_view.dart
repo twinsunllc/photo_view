@@ -63,8 +63,12 @@ class _PhotoGalleryViewState extends State<PhotoGalleryView> {
 
   @override
   Widget build(BuildContext context) {
-    return new Container(
-      child: new PageView.builder(
+    return new Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        title: Text((_selectedIndex + 1).toString() + ' of ' + widget.imageProviders.length.toString()),
+      ),
+      body: new PageView.builder(
         itemCount: widget.imageProviders.length,
         controller: _pageController,
         onPageChanged: _handlePageChanged,
