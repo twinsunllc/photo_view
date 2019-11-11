@@ -1,14 +1,11 @@
 library photo_view;
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view_image_wrapper.dart';
 import 'package:photo_view/photo_view_scale_boundaries.dart';
 import 'package:photo_view/photo_view_scale_state.dart';
 import 'package:after_layout/after_layout.dart';
-
 export 'package:photo_view/photo_view_computed_scale.dart';
-
 /// A [StatefulWidget] that contains all the photo view rendering elements.
 ///
 /// Internally, the image is rendered within an [Image] widget.
@@ -30,7 +27,6 @@ export 'package:photo_view/photo_view_computed_scale.dart';
 /// );
 /// ```
 ///
-
 class PhotoView extends StatefulWidget {
   /// Creates a widget that displays an zoomable image.
   ///
@@ -89,97 +85,81 @@ class PhotoView extends StatefulWidget {
     this.size,
     this.heroTag,
   }) : super(key: key);
-
   /// Given a [imageProvider] it resolves into an zoomable image widget using. It
   /// is required
   final ImageProvider imageProvider;
-
   /// While [imageProvider] is not resolved, [loadingChild] is build by [PhotoView]
   /// into the screen, by default it is a centered [CircularProgressIndicator]
   final Widget loadingChild;
-
   /// Changes the background behind image, defaults to `Colors.black`.
   final Color backgroundColor;
-
   /// Defines the minimal size in which the image will be allowed to assume, it
   /// is proportional to the original image size. Can be either a double or a
   /// [PhotoViewComputedScale]
   final dynamic minScale;
-
   /// Defines the maximal size in which the image will be allowed to assume, it
   /// is proportional to the original image size. Can be either a double or a
   /// [PhotoViewComputedScale]
   final dynamic maxScale;
-
   /// This is used to continue showing the old image (`true`), or briefly show
   /// nothing (`false`), when the `imageProvider` changes. By default it's set
   /// to `false`.
   final bool gaplessPlayback;
-
   /// Defines the size of the scaling base of the image inside [PhotoView],
   /// by default it is `MediaQuery.of(context).size`. This argument is used by
   /// [PhotoViewInline] class.
   final Size size;
-
   /// Assists the activation of a hero animation within [PhotoView]
   final Object heroTag;
-
   @override
   State<StatefulWidget> createState() {
     return new _PhotoViewState();
   }
 }
-
 class _PhotoViewState extends State<PhotoView> {
   PhotoViewScaleState _scaleState;
   GlobalKey containerKey = GlobalKey();
   ImageInfo _imageInfo;
-
   Future<ImageInfo> _getImage() {
     final Completer completer = Completer<ImageInfo>();
     final ImageStream stream =
         widget.imageProvider.resolve(const ImageConfiguration());
-    final listener = (ImageInfo info, bool synchronousCall) {
+    final ImageStreamListener listener = ImageStreamListener((ImageInfo info, bool synchronousCall) {
       if (!completer.isCompleted) {
         completer.complete(info);
         setState(() {
           _imageInfo = info;
         });
       }
-    };
+    });
     stream.addListener(listener);
     completer.future.then((_) {
       stream.removeListener(listener);
     });
     return completer.future;
   }
-
   void setNextScaleState(PhotoViewScaleState newScaleState) {
     setState(() {
       _scaleState = newScaleState;
     });
   }
-
   void onStartPanning() {
     setState(() {
       _scaleState = PhotoViewScaleState.zooming;
     });
   }
-
   @override
   void initState() {
     super.initState();
     _getImage();
     _scaleState = PhotoViewScaleState.contained;
   }
-
   @override
   Widget build(BuildContext context) {
     return widget.heroTag == null
         ? buildWithFuture(context)
         : buildSync(context);
   }
-
   Widget buildWithFuture(BuildContext context) {
     return FutureBuilder(
         future: _getImage(),
@@ -191,14 +171,12 @@ class _PhotoViewState extends State<PhotoView> {
           }
         });
   }
-
   Widget buildSync(BuildContext context) {
     if (_imageInfo == null) {
       return buildLoading();
     }
     return buildWrapper(context, _imageInfo);
   }
-
   Widget buildWrapper(BuildContext context, ImageInfo info) {
     return PhotoViewImageWrapper(
       setNextScaleState: setNextScaleState,
@@ -218,7 +196,6 @@ class _PhotoViewState extends State<PhotoView> {
       heroTag: widget.heroTag,
     );
   }
-
   Widget buildLoading() {
     return widget.loadingChild != null
         ? widget.loadingChild
@@ -231,7 +208,6 @@ class _PhotoViewState extends State<PhotoView> {
           );
   }
 }
-
 /// A [StatelessWidget] which the only child is a [PhotoView] with an automacally
 /// calculated [size]. All but [size] arguments are the same as [PhotoView].
 class PhotoViewInline extends StatefulWidget {
@@ -241,7 +217,6 @@ class PhotoViewInline extends StatefulWidget {
   final dynamic minScale;
   final dynamic maxScale;
   final Object heroTag;
-
   const PhotoViewInline({
     Key key,
     @required this.imageProvider,
@@ -251,22 +226,18 @@ class PhotoViewInline extends StatefulWidget {
     this.maxScale,
     this.heroTag,
   }) : super(key: key);
-
   @override
   State<StatefulWidget> createState() => new _PhotoViewInlineState();
 }
-
 class _PhotoViewInlineState extends State<PhotoViewInline>
     with AfterLayoutMixin<PhotoViewInline> {
   Size _size;
-
   @override
   void afterFirstLayout(BuildContext context) {
     setState(() {
       _size = context.size;
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return new PhotoView(
